@@ -13,4 +13,5 @@ Router.route('/posts/:_id', {
   }
 });
 
+Router.route('/submit', {name: 'postSubmit'});
 Router.onBeforeAction('dataNotFound', {only: 'postPage'});
