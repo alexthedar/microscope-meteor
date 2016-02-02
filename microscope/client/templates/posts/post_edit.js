@@ -5,12 +5,21 @@ Template.postEdit.events({
     var currentPostId=this._id;
 
     var postProperties={
+      currentPostId: currentPostId,
       url: $(e.target).find('[name=url]').val(),
       title: $(e.target).find('[name=title]').val()
     }
 
-    Posts.update(currentPostId, {$set: postProperties}, function(error){
+    var postWithSameLink = Posts.findOne({url: postProperties.url});
+    if (postWithSameLink) {
+      alert('This link has already been posted');
+      Router.go('postPage', {_id: postWithSameLink._id});
+      return
+    }
+
+    Posts.update(currentPostId, {$set: postProperties}, function(error) {
       if (error) {
+        // display the error to the user
         alert(error.reason);
       } else {
         Router.go('postPage', {_id: currentPostId});
