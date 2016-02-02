@@ -6,12 +6,20 @@ Router.configure({
 });
 
 Router.route('/', {name: 'postsList'});
+
 Router.route('/posts/:_id', {
   name: 'postPage',
   data: function() {
     return Posts.findOne(this.params._id);
   }
 });
+
+Router.route('/posts/:_id/edit', {
+  name: 'postEdit',
+  data: function() { return Posts.findOne(this.params._id)}
+});
+
+Router.route('/submit', {name: 'postSubmit'});
 
 var requireLogin=function(){
   if(! Meteor.user()){
@@ -25,6 +33,5 @@ var requireLogin=function(){
   }
 }
 
-Router.route('/submit', {name: 'postSubmit'});
 Router.onBeforeAction('dataNotFound', {only: 'postPage'});
 Router.onBeforeAction(requireLogin, {only: 'postSubmit'});
