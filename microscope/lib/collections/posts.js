@@ -4,13 +4,29 @@ Posts.allow({
   update: function(userId, post) { return ownsDocument(userId, post);},
   remove: function(userId, post) { return ownsDocument(userId, post);}
 
-})
+});
 
 Posts.deny({
   update: function(userId, post, fieldNames){
     return (_.without(fieldNames, 'url', 'title').length>0);
   }
 });
+
+Posts.deny({
+  update: function(userID, post, fieldNames, modifier){
+    var errors = validatePost(modifier.$set);
+    return errors.title || errors.url;
+  }
+})
+
+validatePost = function (post) {
+  var errors={};
+  if (!post.title)
+    errors.title = "Please fill in a headline";
+  if (!post.url)
+    errors.url = "Please fill in a URL";
+  return errors;
+}
 
 Meteor.methods({
   postInsert: function(postAttributes) {
@@ -19,6 +35,10 @@ Meteor.methods({
       title: String,
       url: String
     });
+
+    var errors = validatePost(postAttributes);
+    if (errors.title || errors.url)
+      throw new Meteor.Error('invalid-post', 'You must set a title and a URL for your post');
 
     var postWithSameLink = Posts.findOne({url: postAttributes.url});
     if (postWithSameLink) {

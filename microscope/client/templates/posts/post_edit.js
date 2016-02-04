@@ -1,3 +1,16 @@
+Template.postEdit.onCreated(function() {
+  Session.set('postEditErrors', {});
+});
+
+Template.postEdit.helpers({
+  errorMessage: function(field){
+    return Session.get('postEditErrors')[field];
+  },
+  errorClass: function(field){
+    return !!Session.get('postEditErrors')[field] ? 'has-error' : '';
+  }
+});
+
 Template.postEdit.events({
   'submit form': function(e){
     e.preventDefault();
@@ -10,9 +23,13 @@ Template.postEdit.events({
       title: $(e.target).find('[name=title]').val()
     }
 
+    var errors = validatePost(postProperties);
+    if (errors.title || errors.url)
+      return Session.set('postEditErrors', errors);
+
     var postWithSameLink = Posts.findOne({url: postProperties.url});
     if (postWithSameLink) {
-      alert('This link has already been posted');
+      throwError('This link has already been posted');
       Router.go('postPage', {_id: postWithSameLink._id});
       return
     }
@@ -20,7 +37,7 @@ Template.postEdit.events({
     Posts.update(currentPostId, {$set: postProperties}, function(error) {
       if (error) {
         // display the error to the user
-        alert(error.reason);
+        throwError(error.reason);
       } else {
         Router.go('postPage', {_id: currentPostId});
       }
